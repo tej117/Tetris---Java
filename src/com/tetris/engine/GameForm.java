@@ -21,6 +21,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /** GameForm Class -- Create the screen that displays the game */
 public class GameForm {
@@ -34,11 +35,12 @@ public class GameForm {
 
     private final GameArea gameArea;
     private final HoldArea holdArea;
+    private final BlocksArea blocksArea;
 
     private final static Dimension BOARD_PANEL_DIMENSION = new Dimension(200, 400);
-    private final static Dimension OUTER_FRAME_DIMENSION = new Dimension(600,600);
+    private final static Dimension OUTER_FRAME_DIMENSION = new Dimension(400,550);
     private final static Dimension HOLD_PANEL_DIMENSION = new Dimension(50, 50);
-    private final static Dimension BLOCKS_PANEL_DIMENSION = new Dimension(50, 50);
+    private final static Dimension BLOCKS_PANEL_DIMENSION = new Dimension(50, 150);
 
     /** CONSTRUCTOR -- Sets up the JFrame by appropriately placing the containers in the frame */
     public GameForm() {
@@ -60,37 +62,40 @@ public class GameForm {
         level.setPreferredSize(new Dimension(50, 10));
         score.setPreferredSize(new Dimension(50, 10));
         linesCleared.setPreferredSize(new Dimension(50, 50));
-        linesCleared.setFont(new Font("Serif", Font.PLAIN, 20));
+        linesCleared.setFont(new Font("Serif", Font.PLAIN, 18));
 
         //JPanels
         this.holdArea = new HoldArea();
-        this.gameArea = new GameArea(this.holdArea);
+        this.blocksArea = new BlocksArea();
+        this.gameArea = new GameArea(this.holdArea, this.blocksArea);
 
         //Add the JLabels and JPanel onto the JFrame GridBagLayout
-        this.addItem(gameFrame, score, 2, 0, 1, 1,0.0, 0.0,
-                GridBagConstraints.SOUTH, GridBagConstraints.NONE);
-        this.addItem(gameFrame, level, 2, 1, 1, 1, 0.0, 0.0,
-                GridBagConstraints.SOUTH, GridBagConstraints.NONE);
-        //this.addItem(gameFrame, Box.createHorizontalStrut(50), 0, 0,1,1, 100.0, 25.0,
-                //GridBagConstraints.SOUTHEAST, GridBagConstraints.NONE);
-        this.addItem(gameFrame, holdArea, 0, 0, 1, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        //this.addItem(gameFrame, Box.createGlue(), 0, 3,1,1, 1.0, 1.0,
-          //      GridBagConstraints.CENTER, GridBagConstraints.BOTH);
-        this.addItem(gameFrame, gameArea, 1, 2, 1, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.NONE);
-        //this.addItem(gameFrame, linesCleared, 2, 2, 1, 1, 1.0, 0.25,
-          //      GridBagConstraints.CENTER, GridBagConstraints.NONE);
+        this.addItem(gameFrame, score, 0, 0, GridBagConstraints.REMAINDER, 1,0.0, 0.0,
+                GridBagConstraints.NORTH, GridBagConstraints.BOTH);
+        this.addItem(gameFrame, level, 0, 1, GridBagConstraints.REMAINDER, 1, 0.0, 0.0,
+                GridBagConstraints.NORTH, GridBagConstraints.BOTH);
+        this.addItem(gameFrame, holdArea, 0, 2, 1, 1, 0.0, 0.0,
+                GridBagConstraints.NORTH, GridBagConstraints.BOTH);
+        this.addItem(gameFrame, gameArea, 1, 2, 1, 3, 0.0, 0.0,
+                GridBagConstraints.NORTH, GridBagConstraints.BOTH);
+        this.addItem(gameFrame, blocksArea, 2, 2, 1, 2, 0.0, 0.0,
+                GridBagConstraints.NORTH, GridBagConstraints.BOTH);
+        this.addItem(gameFrame, linesCleared, 2, 4, GridBagConstraints.REMAINDER, GridBagConstraints.REMAINDER, 0.0, 1.0,
+                GridBagConstraints.CENTER, GridBagConstraints.BOTH);
+        this.addItem(gameFrame, Box.createGlue(), 1, 5,1,GridBagConstraints.REMAINDER, 0.0, 1.0,
+              GridBagConstraints.NORTH, GridBagConstraints.BOTH);
 
         //this.gameFrame.pack();
 
         //Initialize parameters of the GameFrame
         this.gameFrame.setSize(OUTER_FRAME_DIMENSION);
         this.gameFrame.setVisible(true);
+        this.gameFrame.setResizable(false);
 
         //Construct initial state of Tetris Grid
         this.gameArea.initTetrisGrid();
-        this.holdArea.initHoldGrid(1);
+        this.holdArea.setHoldGrid(1);
+        this.blocksArea.initBlocksGrid();
 
         //Default InputMap in GameArea only works if gameArea JPanel has focus
         this.gameArea.setFocusable(true);
@@ -154,9 +159,13 @@ public class GameForm {
         private int gridColumns;
         private int gridRows;
 
+        private boolean pauseState = false;
+
+        private BlocksArea blocksArea;
         private int bagSize = 0;
         private final ArrayList<Tetrominoe> blocks = new ArrayList<>();
         private Tetrominoe block;
+        private boolean initBlockBag = false;
 
         private HoldArea holdArea;
         private Tetrominoe heldBlock;
@@ -165,11 +174,12 @@ public class GameForm {
         private int theoreticalDropY = 0;   //A variable to hold destination y coordinate for block on grid
 
         /** CONSTRUCTOR -- Sets up the JPanel by defining size, border and all possible tetrominoes */
-        public GameArea(HoldArea holdArea) {
+        public GameArea(HoldArea holdArea, BlocksArea blocksArea) {
             this.setPreferredSize(BOARD_PANEL_DIMENSION);
             this.setBorder(BorderFactory.createMatteBorder(2,2,2,2, Color.black));
 
             this.holdArea = holdArea;
+            this.blocksArea = blocksArea;
 
             initControls();
             validate();
@@ -188,6 +198,7 @@ public class GameForm {
             im.put(KeyStroke.getKeyStroke("X"), "x");
             im.put(KeyStroke.getKeyStroke("C"), "c");
             im.put(KeyStroke.getKeyStroke("DOWN"), "down");
+            im.put(KeyStroke.getKeyStroke("P"), "p");
 
             am.put("right", new AbstractAction() {
                 @Override
@@ -231,6 +242,13 @@ public class GameForm {
                     softDrop();
                 }
             });
+            am.put("p", new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (!pauseState) pauseState = true;
+                    else pauseState = false;
+                }
+            });
         }
 
         /** Description: Initialize variables related to Tetris grid, and initialize the controls */
@@ -250,6 +268,10 @@ public class GameForm {
             blocks.add(new Tetrominoe(TetrominoeCollection.ZSHAPE, tetrisGrid));
         }
 
+        public boolean getPauseState() {
+            return pauseState;
+        }
+
         /** SPAWN BLOCK */
         public void spawnBlock() {
             //Reset variables for newly spawned block
@@ -261,14 +283,33 @@ public class GameForm {
             theoreticalDropY = 0;
 
             //If bag of blocks is empty, shuffle blocks again
-            if (bagSize == 0) {
-                bagSize = 7;
-                java.util.Collections.shuffle(blocks);
-            }
+            if (!initBlockBag) {
+                initBlockBag = true;
 
-            //Grab block from list of shuffled blocks
-            block = blocks.get(--bagSize);
-            block.spawn();
+                java.util.Collections.shuffle(blocks);
+
+                //Grab block from list of shuffled blocks
+                block = blocks.get(6);
+
+                blocksArea.addBlock(new Tetrominoe(blocks.get(5).getShapeType(), blocks.get(5).getBoard()));
+                blocksArea.addBlock(new Tetrominoe(blocks.get(4).getShapeType(), blocks.get(4).getBoard()));
+                blocksArea.addBlock(new Tetrominoe(blocks.get(3).getShapeType(), blocks.get(3).getBoard()));
+
+                bagSize = 3;
+
+                block.spawn();
+            } else {
+                if (bagSize == 0) {
+                    java.util.Collections.shuffle(blocks);
+                    bagSize = 7;
+                }
+
+                bagSize--;
+                block = blocksArea.removeBlock();
+                blocksArea.addBlock(new Tetrominoe(blocks.get(bagSize).getShapeType(), blocks.get(bagSize).getBoard()));
+
+                block.spawn();
+            }
 
             updateDropPosition();
         }
@@ -354,8 +395,6 @@ public class GameForm {
                 //Spawn a new block
                 spawnBlock();
 
-                System.out.println(holdArea.getBlock().getShapeType());
-
                 repaint();
                 return;
             }
@@ -372,14 +411,13 @@ public class GameForm {
                 block.setBoard(tempBoard);
 
                 holdArea.setBlock(heldBlock);
-                holdArea.setDrawBlock(block.getShapeType());
+                holdArea.setDrawBlock(heldBlock.getShapeType());
 
                 block.spawn();
 
                 switchBlock = false;
             }
 
-            System.out.println(holdArea.getBlock().getShapeType());
             updateDropPosition();
             repaint();
         }
@@ -519,6 +557,65 @@ public class GameForm {
     }
     public class BlocksArea extends JPanel {
 
+        //Initialize Variables
+        private int gridColumns;
+        private int gridCellSize;
+        private int gridRows;
+
+        private LinkedList<Tetrominoe> nextBlocks = new LinkedList<>();
+
+        public BlocksArea() {
+            this.setPreferredSize(BLOCKS_PANEL_DIMENSION);
+            this.setBorder(BorderFactory.createMatteBorder(2,2,2,2, Color.black));
+
+            validate();
+        }
+
+        public void initBlocksGrid() {
+            this.gridColumns = 7;
+            this.gridCellSize = this.getWidth() / gridColumns;
+            this.gridRows = this.getHeight() / gridCellSize;
+        }
+
+        public void addBlock(Tetrominoe t) {
+            nextBlocks.add(t);
+            repaint();
+        }
+
+        public Tetrominoe removeBlock() {
+            return nextBlocks.poll();
+        }
+
+        private void drawBlocks(Graphics g) {
+            int interval = 50;
+            for (int i = 0; i < nextBlocks.size(); i++) {
+                for (int row = nextBlocks.get(i).getPointY(); row < nextBlocks.get(i).getPointY() + nextBlocks.get(i).getHeight(); row++) {
+                    for (int col = nextBlocks.get(i).getPointX(); col < nextBlocks.get(i).getPointX() + nextBlocks.get(i).getWidth(); col++) {
+                        if (nextBlocks.get(i).getCoords()[row][col] == 1) {
+                            int x = (2 + col) * gridCellSize;
+                            int y = row * gridCellSize + (20 + interval*i);
+
+                            drawGridSquare(g, nextBlocks.get(i).getColour(), x, y);
+                        }
+                    }
+                }
+            }
+        }
+        private void drawGridSquare(Graphics g, Color color, int x, int y) {
+            g.setColor(color);
+            g.fillRect(x, y, gridCellSize, gridCellSize);
+            g.setColor(Color.black);
+            g.drawRect(x, y, gridCellSize, gridCellSize);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            if (this.nextBlocks != null) {
+                drawBlocks(g);
+            }
+        }
     }
 
     public class HoldArea extends JPanel {
@@ -548,43 +645,57 @@ public class GameForm {
             this.block = block;
         }
 
-        public void initHoldGrid(int gridColumns) {
+        public void setHoldGrid(int gridColumns) {
             this.gridColumns = gridColumns;
             this.gridCellSize = this.getWidth() / gridColumns;
             this.gridRows = this.getHeight() / gridCellSize;
-            System.out.println("Resizing");
         }
 
         public void setDrawBlock(Tetrominoe.ShapeType shapeType) {
             if (shapeType.toString().equals("I")) {
-                initHoldGrid(4);
-                blockX = 0;
-                blockY = 0;
-                System.out.println("I Block");
-            } else {
-                initHoldGrid(4);
+                setHoldGrid(6);
                 blockX = 1;
-                blockY = 1;
+                blockY = 2;
+            } else if (shapeType.toString().equals("O")) {
+                setHoldGrid(6);
+                blockX = 2;
+                blockY = 2;
+            } else if (shapeType.toString().equals("T")) {
+                setHoldGrid(7);
+                blockX = 2;
+                blockY = 3;
+            } else if (shapeType.toString().equals("S")) {
+                setHoldGrid(7);
+                blockX = 2;
+                blockY = 3;
+            } else if (shapeType.toString().equals("Z")) {
+                setHoldGrid(7);
+                blockX = 2;
+                blockY = 3;
+            } else if (shapeType.toString().equals("J")) {
+                setHoldGrid(7);
+                blockX = 2;
+                blockY = 3;
+            } else if (shapeType.toString().equals("L")) {
+                setHoldGrid(7);
+                blockX = 2;
+                blockY = 3;
             }
             repaint();
         }
 
         private void drawBlock(Graphics g) {
-            System.out.println(gridColumns);
-            System.out.println(gridRows);
             for (int row = block.getPointY(); row < block.getPointY()+block.getHeight(); row++) {
                 for (int col = block.getPointX(); col < block.getPointX()+block.getWidth(); col++) {
                     if (block.getCoords()[row][col] == 1) {
                         int x = (blockX + col) * gridCellSize;
                         int y = (blockY + row) * gridCellSize;
 
-                        System.out.println("Drawing");
                         drawGridSquare(g, block.getColour(), x, y);
                     }
                 }
             }
         }
-
         private void drawGridSquare(Graphics g, Color color, int x, int y) {
             g.setColor(color);
             g.fillRect(x, y, gridCellSize, gridCellSize);

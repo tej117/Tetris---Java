@@ -68,15 +68,15 @@ public class Board {
                     if ((xPos + c >= 0 && xPos + c < this.getGridColumns()) &&
                             yPos + r > 0 && yPos + r < this.getGridRows()) {
                         if (this.getBackgroundColor(r + yPos, c + xPos)!= null) {
-                            System.out.println("Block Collision");
+                            //System.out.println("Block Collision");
                             return true;
                         }
                     } else if (xPos + c < 0 || xPos + c >= this.getGridColumns()) {
-                        System.out.println("Side Wall Collision");
+                        //System.out.println("Side Wall Collision");
                         return true;
                     }
                     else if (yPos + r >= this.getGridRows()) {
-                        System.out.println("Vertical Wall Collision");
+                        //System.out.println("Vertical Wall Collision");
                         return true;
                     }
                 }
