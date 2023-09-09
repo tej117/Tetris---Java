@@ -51,12 +51,15 @@ public class GameThread extends Thread {
             ga.spawnBlock();
 
             //Have the block move down until it reaches the bottom
-            while (!ga.moveBlockDown()) {
+            while (!ga.checkBottom()) {
                 try {
-                    Thread.sleep(gameSpeed);
+                    if (!ga.getPauseState()) {
+                        ga.moveBlockDown();
+                        Thread.sleep(gameSpeed);
 
-                    if (linesClearedTimer == 0) gf.updateLinesCleared("");
-                    else linesClearedTimer--;
+                        if (linesClearedTimer == 0) gf.updateLinesCleared("");
+                        else linesClearedTimer--;
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -64,6 +67,7 @@ public class GameThread extends Thread {
 
             //Exit while loop if block exceeds game screen height (gets here when block touches 'bottom')
             if(ga.isBlockOutOfBounds()) {
+                gf.displayGameOverScreen();
                 System.out.println("Game Over");
                 break;
             }

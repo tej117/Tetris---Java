@@ -23,6 +23,8 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import static javax.swing.JOptionPane.showMessageDialog;
+
 /** GameForm Class -- Create the screen that displays the game */
 public class GameForm {
 
@@ -146,6 +148,29 @@ public class GameForm {
         new GameThread(gf).start();
     }
 
+    public void displayGameOverScreen() {
+        //Create New JPanel on top of Frame using the glassPane
+        final JPanel glass = (JPanel) gameFrame.getGlassPane();
+
+        //Try to figure out how to add background color onto the glass pane directly
+        glass.setVisible(true);
+        glass.setLayout(new BorderLayout());
+
+        JPanel background = new JPanel(new BorderLayout());
+        background.setBackground(new Color(0,0,0,125));
+        background.setPreferredSize(OUTER_FRAME_DIMENSION);
+
+        JLabel text = new JLabel("Game Over", SwingConstants.CENTER);
+        text.setForeground(Color.BLACK);
+        text.setFont(new Font("Serif", Font.PLAIN, 18));
+
+        background.add(text);
+        glass.add(background);
+
+        glass.repaint();
+        glass.validate();
+    }
+
     private JMenuBar createGameFormMenuBar() {
         return null;
     }
@@ -160,6 +185,7 @@ public class GameForm {
         private int gridRows;
 
         private boolean pauseState = false;
+        private JPanel pauseScreen;
 
         private BlocksArea blocksArea;
         private int bagSize = 0;
@@ -181,6 +207,7 @@ public class GameForm {
             this.holdArea = holdArea;
             this.blocksArea = blocksArea;
 
+            initPauseScreen();
             initControls();
             validate();
         }
@@ -245,8 +272,10 @@ public class GameForm {
             am.put("p", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if (!pauseState) pauseState = true;
-                    else pauseState = false;
+                    if (!pauseState) {
+                        pauseState = true;
+                    } else pauseState = false;
+                    setPauseScreen();
                 }
             });
         }
@@ -268,8 +297,33 @@ public class GameForm {
             blocks.add(new Tetrominoe(TetrominoeCollection.ZSHAPE, tetrisGrid));
         }
 
+        public void initPauseScreen() {
+            //Ensures that New JPanel is aligned on top of gameArea
+            this.setLayout(new BorderLayout());
+
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setBackground(new Color(0,0,0,125));
+            panel.setPreferredSize(BOARD_PANEL_DIMENSION);
+
+            JLabel text = new JLabel("Paused", SwingConstants.CENTER);
+            text.setForeground(Color.WHITE);
+
+            panel.add(text);
+            pauseScreen = panel;
+        }
+
         public boolean getPauseState() {
             return pauseState;
+        }
+
+        private void setPauseScreen() {
+            if (getPauseState()) {
+                this.add(pauseScreen);
+                this.repaint();
+                this.revalidate();
+            } else {
+                this.remove(pauseScreen);
+            }
         }
 
         /** SPAWN BLOCK */
@@ -364,8 +418,15 @@ public class GameForm {
 
             repaint();
         }
-        public boolean moveBlockDown() {
+        public void moveBlockDown() {
 
+            if (!checkBottom()) {
+                block.moveDown();
+                repaint();
+            }
+        }
+
+        public boolean checkBottom() {
             int newY = block.getY() + 1;
 
             //Check for Collision when moving down
@@ -373,12 +434,8 @@ public class GameForm {
                 return true;
             }
 
-            block.moveDown();
-            repaint();
-
             return false;
         }
-
         /** Description: Hold the block (if no blocks are currently held) or switch held block with block on grid.
          *               Also checks to make sure that the player switches the block only once per new spawned block*/
         public void holdBlock() {
@@ -555,6 +612,7 @@ public class GameForm {
         }
 
     }
+
     public class BlocksArea extends JPanel {
 
         //Initialize Variables
