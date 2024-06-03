@@ -156,19 +156,26 @@ public class GameForm {
         glass.setVisible(true);
         glass.setLayout(new BorderLayout());
 
+        //In the background JPanel, add a button action which will trigger a new game
+
         JPanel background = new JPanel(new BorderLayout());
-        background.setBackground(new Color(0,0,0,125));
+        background.setBackground(new Color(0,0,0,255/*125*/));
         background.setPreferredSize(OUTER_FRAME_DIMENSION);
 
+        JButton newGame = new JButton("New Game");
+        newGame.setPreferredSize(new Dimension(100, 50));
+        background.add(newGame, BorderLayout.SOUTH);
+
+
         JLabel text = new JLabel("Game Over", SwingConstants.CENTER);
-        text.setForeground(Color.BLACK);
+        text.setForeground(Color.WHITE);
         text.setFont(new Font("Serif", Font.PLAIN, 18));
+        background.add(text, BorderLayout.CENTER);
 
-        background.add(text);
-        glass.add(background);
+        glass.add(background, BorderLayout.CENTER);
 
+        glass.revalidate();
         glass.repaint();
-        glass.validate();
     }
 
     private JMenuBar createGameFormMenuBar() {
@@ -613,6 +620,7 @@ public class GameForm {
 
     }
 
+    /** BlocksArea Class -- Create a Panel that displays the upcoming blocks */
     public class BlocksArea extends JPanel {
 
         //Initialize Variables
@@ -676,6 +684,7 @@ public class GameForm {
         }
     }
 
+    /** HoldArea Class -- Create a Panel that displays the block being held */
     public class HoldArea extends JPanel {
 
         //Initialize Variables
