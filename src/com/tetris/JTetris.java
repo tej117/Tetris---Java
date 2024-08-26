@@ -14,12 +14,12 @@
 
 package com.tetris;
 
-import com.tetris.engine.GameForm;
+import com.tetris.engine.logic.GameController;
 
 public class JTetris {
 
     /** Main Function: Runs the Tetris Game */
     public static void main(String[] args) {
-        GameForm gameForm = new GameForm();
+        GameController gc = new GameController();
     }
 }

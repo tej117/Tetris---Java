@@ -10,7 +10,7 @@
  *
  */
 
-package com.tetris.engine.tetrominoes;
+package com.tetris.engine.model.tetrominoes;
 
 //'Wrapper' Class
 public class TetrominoeProperties {

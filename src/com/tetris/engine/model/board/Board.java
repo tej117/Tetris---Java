@@ -10,10 +10,10 @@
  *
  */
 
-package com.tetris.engine.board;
+package com.tetris.engine.model.board;
 
-import com.tetris.engine.tetrominoes.Tetrominoe;
-import com.tetris.engine.tetrominoes.TetrominoeProperties;
+import com.tetris.engine.model.tetrominoes.Tetrominoe;
+import com.tetris.engine.model.tetrominoes.TetrominoeProperties;
 
 import java.awt.*;
 

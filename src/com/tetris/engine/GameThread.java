@@ -13,7 +13,9 @@
 
 package com.tetris.engine;
 
-import com.tetris.engine.GameForm.GameArea;
+import com.tetris.engine.gui.*;
+import com.tetris.engine.logic.BlockController;
+import com.tetris.engine.logic.MarathonController;
 
 /**
  * GameThread Class -- New Thread for the game loop
@@ -21,8 +23,9 @@ import com.tetris.engine.GameForm.GameArea;
 public class GameThread extends Thread {
 
     //Initialize Variables
-    private final GameArea ga;
-    private final GameForm gf;
+    private final GameScreen gs;
+    private final MarathonController mc;
+    private final BlockController bc;
     private int score;
     private int level = 1;
     private int currentLines = 0;
@@ -35,10 +38,11 @@ public class GameThread extends Thread {
 
     private int linesClearedTimer = 1;
 
-    /** Constructor - Grab GameForm Object */
-    public GameThread(GameForm gf) {
-        this.ga = gf.getGameArea();
-        this.gf = gf;
+    /** Constructor - Grab Game Objects */
+    public GameThread(MarathonController mc, GameScreen gs, BlockController bc) {
+        this.mc = mc;
+        this.bc = bc;
+        this.gs = gs;
     }
 
     /** Description: Execute thread */
@@ -48,16 +52,16 @@ public class GameThread extends Thread {
         while(true) {
 
             //Spawn a Block
-            ga.spawnBlock();
+            bc.spawnBlock();
 
             //Have the block move down until it reaches the bottom
-            while (!ga.checkBottom()) {
+            while (!bc.checkBottom()) {
                 try {
-                    if (!ga.getPauseState()) {
-                        ga.moveBlockDown();
+                    if (!mc.getPauseState()) {
+                        bc.moveBlockDown();
                         Thread.sleep(gameSpeed);
 
-                        if (linesClearedTimer == 0) gf.updateLinesCleared("");
+                        if (linesClearedTimer == 0) mc.updateLinesCleared("");
                         else linesClearedTimer--;
                     }
                 } catch (InterruptedException e) {
@@ -66,16 +70,16 @@ public class GameThread extends Thread {
             }
 
             //Exit while loop if block exceeds game screen height (gets here when block touches 'bottom')
-            if(ga.isBlockOutOfBounds()) {
-                gf.displayGameOverScreen();
+            if(bc.isBlockOutOfBounds()) {
+                gs.displayGameOverScreen();
                 System.out.println("Game Over");
                 break;
             }
 
-            ga.moveBlockToBackground();
+            mc.moveBlockToBackground();
 
             //Update Score
-            int linesCleared = ga.clearLines();
+            int linesCleared = mc.clearLines();
             currentLines += linesCleared;
             lastClear = linesCleared;
             linesClearedTimer = 1;
@@ -83,31 +87,31 @@ public class GameThread extends Thread {
             switch(linesCleared) {
                 case 1: { // Single
                     score += 80*(level+combo);
-                    gf.updateLinesCleared("Single");
+                    mc.updateLinesCleared("Single");
                     System.out.println("Single");
                     break;
                 }
                 case 2: { // Double
                     score += 200*(level+combo);
-                    gf.updateLinesCleared("Double");
+                    mc.updateLinesCleared("Double");
                     System.out.println("Double");
                     break;
                 }
                 case 3: { // Triple
                     score += 600*(level+combo);
-                    gf.updateLinesCleared("Triple");
+                    mc.updateLinesCleared("Triple");
                     System.out.println("Triple");
                     break;
                 }
                 case 4: { //Tetris
                     score += 2400*(level+combo);
-                    gf.updateLinesCleared("Tetris!");
+                    mc.updateLinesCleared("Tetris!");
                     System.out.println("Tetris!");
                     break;
                 }
                 case 8: { //Perfect Clear
                     score += 7600*(level+combo);
-                    gf.updateLinesCleared("Perfect Clear");
+                    mc.updateLinesCleared("Perfect Clear");
                     System.out.println("Perfect Clear");
                     break;
                 }
@@ -120,12 +124,12 @@ public class GameThread extends Thread {
 //                combo = 0;
 //            }
 
-            gf.updateScore(score);
+            mc.updateScore(score);
 
             //Update Level
             if (currentLines > levelCounter) {
                 level++;
-                gf.updateLevel(level);
+                mc.updateLevel(level);
                 gameSpeed -= gameSpeed/speedupPerLevel; //Speedup by 5%
                 currentLines = 0;
             }

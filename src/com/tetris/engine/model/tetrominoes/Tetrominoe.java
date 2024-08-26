@@ -9,9 +9,9 @@
  *
  */
 
-package com.tetris.engine.tetrominoes;
+package com.tetris.engine.model.tetrominoes;
 
-import com.tetris.engine.board.Board;
+import com.tetris.engine.model.board.Board;
 
 import java.awt.Color;
 

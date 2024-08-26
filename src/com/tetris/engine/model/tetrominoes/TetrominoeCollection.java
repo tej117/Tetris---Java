@@ -11,7 +11,7 @@
  *
  */
 
-package com.tetris.engine.tetrominoes;
+package com.tetris.engine.model.tetrominoes;
 
 import java.util.HashMap;
 
