@@ -13,8 +13,6 @@
 
 package com.tetris.engine.gui;
 
-import com.tetris.engine.logic.MarathonController;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -33,18 +31,14 @@ public class GameScreen {
     private final HoldArea holdArea;
     private final QueueArea queueArea;
 
-    //Initialize Variables - Controllers
-    private final MarathonController mc;
-
-    //Initialize Variables - Dimensions of the GUI Components
+    //Initialize Static Variables - Dimensions of the GUI Components
     protected final static Dimension BOARD_PANEL_DIMENSION = new Dimension(200, 400);
     protected final static Dimension OUTER_FRAME_DIMENSION = new Dimension(400,550);
     protected final static Dimension HOLD_PANEL_DIMENSION = new Dimension(50, 50);
     protected final static Dimension BLOCKS_PANEL_DIMENSION = new Dimension(50, 150);
 
     /** CONSTRUCTOR -- Sets up the JFrame by appropriately placing the containers in the frame */
-    public GameScreen(MarathonController mc) {
-        this.mc = mc;
+    public GameScreen() {
 
         //Initialize Game Components
         this.gameFrame = new JFrame("JTetris");
@@ -52,9 +46,9 @@ public class GameScreen {
         this.score = new JLabel();
         this.level = new JLabel();
         this.linesCleared = new JLabel();
-        this.holdArea = new HoldArea(this);
-        this.queueArea = new QueueArea(this);
-        this.gameArea = new GameArea(this, mc);
+        this.holdArea = new HoldArea();
+        this.queueArea = new QueueArea();
+        this.gameArea = new GameArea();
 
         //Set up the Game Screen (The layout)
         initGameScreen();
@@ -63,11 +57,8 @@ public class GameScreen {
         updateScore(0);
         updateLevel(1);
 
-        this.holdArea.setHoldGrid(1); //Rename this function to initHoldGrid
+        //Initialize the Grid Properties for QueueArea
         this.queueArea.initBlocksGrid();
-
-        //Default InputMap in GameArea only works if gameArea JPanel has focus
-        this.gameArea.setFocusable(true);
     }
 
     /** Initialize Screen Layout  */

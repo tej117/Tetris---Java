@@ -1,6 +1,19 @@
+/**
+ * File:        GameArea.java
+ *
+ * Author:      Simran Cheema
+ * Date:        Summer 2023
+ *
+ * Summary of File:
+ *      This file contains a JPanel Class called GameArea which draws the blocks falling, moving and landing.
+ *      It also contains a private JPanel for the pause screen and some minor logic to set the pause screen.
+ */
+
 package com.tetris.engine.gui;
 
-import com.tetris.engine.logic.MarathonController;
+import com.tetris.engine.event.GameAreaEvent;
+import com.tetris.engine.event.GameEvent;
+import com.tetris.engine.event.GameEventListener;
 import com.tetris.engine.model.board.Board;
 import com.tetris.engine.model.tetrominoes.Tetrominoe;
 
@@ -8,36 +21,44 @@ import javax.swing.*;
 import java.awt.*;
 
 /** GameArea Class -- Create a Panel that displays the game */
-public class GameArea extends JPanel {
+public class GameArea extends JPanel implements GameEventListener {
 
-    //Initialize Variables
+    //Initialize Variables - Block Properties
     private Tetrominoe block;
+    private int theoreticalDropY;
+
+    //Initialize Variables - Board Properties
     private Board tetrisGrid;
     private int gridCellSize;
     private int gridColumns;
     private int gridRows;
 
-    //Initialize Variables - Pause Screen (Move to a Controller)
+    //Initialize Variables - Pause Screen (MAYBE move to a Controller)
     private JPanel pauseScreen;
 
-    private GameScreen gameScreen;
-    private MarathonController mc;
-
     /** CONSTRUCTOR -- Sets up the JPanel by defining size, border and all possible tetrominoes */
-    public GameArea(GameScreen gameScreen, MarathonController mc) {
-        this.gameScreen = gameScreen;
-        this.mc = mc;
+    public GameArea() {
 
-        this.setPreferredSize(gameScreen.BOARD_PANEL_DIMENSION);
+        this.block = null;
+        this.theoreticalDropY = 0;
+
+        this.setPreferredSize(GameScreen.BOARD_PANEL_DIMENSION);
         this.setBorder(BorderFactory.createMatteBorder(2,2,2,2, Color.black));
 
         initPauseScreen();
+
         validate();
     }
 
-    public void setBlock(Tetrominoe block) {
+    /** SETTER METHODS */
+    private void setBlock(Tetrominoe block) {
         this.block = block;
     }
+    private void setTheoreticalDropY(int theoreticalDropY) {
+        this.theoreticalDropY = theoreticalDropY;
+    }
+
+    /** Description: Pass in a Board and then store properties in this class */
     public void setBoardProperties(Board tetrisGrid) {
         this.tetrisGrid = tetrisGrid;
         gridCellSize = tetrisGrid.getGridCellSize();
@@ -45,13 +66,14 @@ public class GameArea extends JPanel {
         gridRows = tetrisGrid.getGridRows();
     }
 
+    /** Description: Create the pause screen JPanel */
     public void initPauseScreen() {
         //Ensures that New JPanel is aligned on top of gameArea
         this.setLayout(new BorderLayout());
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(0,0,0,125));
-        panel.setPreferredSize(gameScreen.BOARD_PANEL_DIMENSION);
+        panel.setPreferredSize(GameScreen.BOARD_PANEL_DIMENSION);
 
         JLabel text = new JLabel("Paused", SwingConstants.CENTER);
         text.setForeground(Color.WHITE);
@@ -60,6 +82,7 @@ public class GameArea extends JPanel {
         pauseScreen = panel;
     }
 
+    /** Description: Displays the pause screen dependent on the pause state */
     public void setPauseScreen(boolean pauseState) {
         if (pauseState) {
             this.add(pauseScreen);
@@ -169,10 +192,24 @@ public class GameArea extends JPanel {
         super.paintComponent(g);
 
         drawBackground(g);
-        if (mc.getBlockController().getBlock() != null) {
-            drawTheoreticalDropPosition(g, mc.getBlockController().getTheoreticalDropY());
+        if (this.block != null) {
+            drawTheoreticalDropPosition(g, theoreticalDropY);
             drawBlock(g);
         }
     }
 
+    //Listen for Event in Block Controller
+    @Override
+    public void onEvent(GameEvent event) {
+        if (event instanceof GameAreaEvent) {
+            GameAreaEvent gameAreaEvent = (GameAreaEvent) event;
+
+            //Update the block in game area
+            setBlock(gameAreaEvent.getBlock());
+            //Update the theoreticalDropY position
+            setTheoreticalDropY(gameAreaEvent.getTheoreticalDropY());
+            //repaint the screen
+            this.repaint();
+        }
+    }
 }

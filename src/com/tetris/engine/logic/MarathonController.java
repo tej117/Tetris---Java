@@ -1,7 +1,20 @@
+/**
+ * File:        MarathonController.java
+ *
+ * Author:      Simran Cheema
+ * Date:        Summer 2024
+ *
+ * Summary of File:
+ *      This file is a controller specifically for the Marathon mode. It essentially creates everything
+ *      that is required for the game to start. -- GameScreen, BlockController, EventDispatcher, etc.
+ *
+ */
+
 package com.tetris.engine.logic;
 
 import com.tetris.engine.GameData;
 import com.tetris.engine.GameThread;
+import com.tetris.engine.event.GameEventDispatcher;
 import com.tetris.engine.gui.GameArea;
 import com.tetris.engine.gui.GameScreen;
 import com.tetris.engine.gui.HoldArea;
@@ -11,6 +24,7 @@ import com.tetris.engine.model.board.Board;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
+/** MarathonController Class -- Game Mode Controller which sets up everything and then starts the game */
 public class MarathonController {
 
     //Initialize Variables - JPanels
@@ -25,28 +39,45 @@ public class MarathonController {
     //Initialize Variables - Other Controllers
     private final BlockController blockController;
 
+    //Initialize Variables - Event Dispatcher
+    private final GameEventDispatcher gameEventDispatcher;
+
     //Initialize Variables - Tetris Grid
     private Board tetrisGrid;
 
     //Initialize Variables - Game States
     private boolean pauseState = false;
 
-    /** CONSTRUCTOR -- Sets up GameScreen, GameData, GameBoard, BlockController and starts the game */
+    /** CONSTRUCTOR -- Sets up Game and starts the game */
     public MarathonController () {
+        //Create the Event Dispatcher
+        gameEventDispatcher = new GameEventDispatcher();
+
         //Set up game screen
-        this.gameScreen = new GameScreen(this);
+        this.gameScreen = new GameScreen();
         this.gameArea = gameScreen.getGameArea();
         this.holdArea = gameScreen.getHoldArea();
         this.queueArea = gameScreen.getQueueArea();
 
+        //GameData
         this.gameData = new GameData();
 
+        //Default InputMap in GameArea only works if gameArea JPanel has focus
+        this.gameArea.setFocusable(true);
+        this.gameArea.requestFocusInWindow();
+        //Set up buttons for the game
         initControls();
 
         //Construct initial state of Tetris Grid
         this.initTetrisGrid(this.gameArea.getWidth(), this.gameArea.getHeight());
 
-        this.blockController = new BlockController(gameArea, holdArea, queueArea, tetrisGrid);
+        //Create a Block Controller
+        this.blockController = new BlockController(gameEventDispatcher, tetrisGrid);
+
+        //Register event listeners
+        gameEventDispatcher.addListener(gameArea);
+        gameEventDispatcher.addListener(holdArea);
+        gameEventDispatcher.addListener(queueArea);
 
         //Begin game loop
         this.startGame(this.gameScreen);
@@ -55,9 +86,6 @@ public class MarathonController {
     /** GETTER METHODS */
     public boolean getPauseState() {
         return pauseState;
-    }
-    public BlockController getBlockController() {
-        return blockController;
     }
 
     /** Description: Set up keyboard buttons by defining certain buttons with actions */
@@ -142,7 +170,7 @@ public class MarathonController {
         new GameThread(this, gs, this.blockController).start();
     }
 
-    /** UPDATE GAME DATA AND GAMEFORM */
+    /** UPDATE GAME DATA AND GAMESCREEN */
     public void updateScore(int score) {
         this.gameData.setScore(score);
         this.gameScreen.updateScore(score);
@@ -162,6 +190,6 @@ public class MarathonController {
 
     /** Description: Push block to background using method in board AKA UPDATE BOARD STATE*/
     public void moveBlockToBackground() {
-        tetrisGrid.moveBlockToBackground(blockController.getBlock());
+        tetrisGrid.moveBlockToBackground(blockController.getCurrentBlock());
     }
 }

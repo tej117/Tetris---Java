@@ -1,12 +1,25 @@
+/**
+ * File:        HoldArea.java
+ *
+ * Author:      Simran Cheema
+ * Date:        Summer 2023
+ *
+ * Summary of File:
+ *      This file contains a JPanel Class called HoldArea which draws a block being held.
+ */
+
 package com.tetris.engine.gui;
 
+import com.tetris.engine.event.GameEvent;
+import com.tetris.engine.event.GameEventListener;
+import com.tetris.engine.event.HoldAreaEvent;
 import com.tetris.engine.model.tetrominoes.Tetrominoe;
 
 import javax.swing.*;
 import java.awt.*;
 
 /** HoldArea Class -- Create a Panel that displays the block being held */
-public class HoldArea extends JPanel {
+public class HoldArea extends JPanel implements GameEventListener {
 
     //Initialize Variables
     private int gridColumns;
@@ -15,35 +28,31 @@ public class HoldArea extends JPanel {
 
     private Tetrominoe block;
 
-    private GameScreen gameScreen;
-
     private int blockX = 0;
     private int blockY = 0;
 
-    public HoldArea(GameScreen gameScreen) {
-        this.gameScreen = gameScreen;
-
-        this.setPreferredSize(this.gameScreen.HOLD_PANEL_DIMENSION);
+    /** CONSTRUCTOR */
+    public HoldArea() {
+        this.setPreferredSize(GameScreen.HOLD_PANEL_DIMENSION);
         this.setBorder(BorderFactory.createMatteBorder(2,2,2,2, Color.black));
 
         validate();
     }
 
-    public Tetrominoe getBlock() {
-        return block;
-    }
-
-    public void setBlock(Tetrominoe block) {
+    /** SETTER METHODS */
+    private void setBlock(Tetrominoe block) {
         this.block = block;
     }
 
+    /** Description: Creates the grid for the holdArea depending on number of gridColumns wanted */
     public void setHoldGrid(int gridColumns) {
         this.gridColumns = gridColumns;
         this.gridCellSize = this.getWidth() / gridColumns;
         this.gridRows = this.getHeight() / gridCellSize;
     }
 
-    public void setDrawBlock(Tetrominoe.ShapeType shapeType) {
+    /** Description: Defines block coordinates for block type so that blocks are centered in the HoldArea */
+    private void setDrawBlock(Tetrominoe.ShapeType shapeType) {
         if (shapeType.toString().equals("I")) {
             setHoldGrid(6);
             blockX = 1;
@@ -76,6 +85,7 @@ public class HoldArea extends JPanel {
         repaint();
     }
 
+    /** DRAW BLOCKS */
     private void drawBlock(Graphics g) {
         for (int row = block.getPointY(); row < block.getPointY()+block.getHeight(); row++) {
             for (int col = block.getPointX(); col < block.getPointX()+block.getWidth(); col++) {
@@ -101,6 +111,19 @@ public class HoldArea extends JPanel {
 
         if (this.block != null) {
             drawBlock(g);
+        }
+    }
+
+    //Listen for Event in Block Controller
+    @Override
+    public void onEvent(GameEvent event) {
+        if (event instanceof HoldAreaEvent) {
+            HoldAreaEvent holdAreaEvent = (HoldAreaEvent) event;
+
+            //Update the block in hold area
+            setBlock(holdAreaEvent.getBlock());
+            //Set the position of the block in the holdArea
+            setDrawBlock(holdAreaEvent.getBlock().getShapeType());
         }
     }
 }

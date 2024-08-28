@@ -16,6 +16,7 @@ package com.tetris;
 
 import com.tetris.engine.logic.GameController;
 
+/** JTetris Class -- Where the game begins */
 public class JTetris {
 
     /** Main Function: Runs the Tetris Game */

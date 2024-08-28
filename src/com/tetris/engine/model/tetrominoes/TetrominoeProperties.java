@@ -6,13 +6,14 @@
  *
  * Summary of File:
  *      This class purely acts as a wrapper class so that this can be stored in the hashmap generated in
- *      TetrominoeCollection. The class holds all the properties required for each rotation of a tetris block.
+ *      TetrominoeCollection. The class holds all the properties required for each rotation of a tetris block
+ *      since each rotation will have a different coords, width, height, pointX and pointY.
  *
  */
 
 package com.tetris.engine.model.tetrominoes;
 
-//'Wrapper' Class
+/** TetrominoeProperties - 'Wrapper' Class */
 public class TetrominoeProperties {
     int[][] coords;
     int width;
@@ -20,6 +21,7 @@ public class TetrominoeProperties {
     int pointX;
     int pointY;
 
+    /** CONSTRUCTOR - Creates an instance with these properties */
     TetrominoeProperties(int[][] coords, int width, int height, int pointX, int pointY) {
         this.coords = new int[coords.length][coords.length];
         TetrominoeCollection.clone2DSquareArray(coords.length, coords, this.coords);
@@ -29,7 +31,7 @@ public class TetrominoeProperties {
         this.pointY = pointY;
     }
 
-    //Getter Methods
+    /** GETTER METHODS */
     public int[][] getCoords() {
         return coords;
     }

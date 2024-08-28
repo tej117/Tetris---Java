@@ -1,47 +1,60 @@
+/**
+ * File:        QueueArea.java
+ *
+ * Author:      Simran Cheema
+ * Date:        Summer 2023
+ *
+ * Summary of File:
+ *      This file contains a JPanel Class called QueueArea which draws 3 blocks queued that will soon be played.
+ */
+
 package com.tetris.engine.gui;
 
+import com.tetris.engine.event.GameEvent;
+import com.tetris.engine.event.GameEventListener;
+import com.tetris.engine.event.QueueAreaEvent;
 import com.tetris.engine.model.tetrominoes.Tetrominoe;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.LinkedList;
 
-/** BlocksArea Class -- Create a Panel that displays the upcoming blocks */
-public class QueueArea extends JPanel {
+/** BlocksArea Class -- Create a Panel that displays the upcoming blocks (GUI) */
+public class QueueArea extends JPanel implements GameEventListener {
 
     //Initialize Variables
     private int gridColumns;
     private int gridCellSize;
     private int gridRows;
 
-    private GameScreen gameScreen;
-
+    // Store Blocks in Queue
     private LinkedList<Tetrominoe> nextBlocks = new LinkedList<>();
 
-    public QueueArea(GameScreen gameForm) {
-        this.gameScreen = gameForm;
-
-        this.setPreferredSize(this.gameScreen.BLOCKS_PANEL_DIMENSION);
+    /** CONSTRUCTOR */
+    public QueueArea() {
+        this.setPreferredSize(GameScreen.BLOCKS_PANEL_DIMENSION);
         this.setBorder(BorderFactory.createMatteBorder(2,2,2,2, Color.black));
 
         validate();
     }
 
+    /** Description: Initialize grid properties for QueueArea */
     public void initBlocksGrid() {
         this.gridColumns = 7;
         this.gridCellSize = this.getWidth() / gridColumns;
         this.gridRows = this.getHeight() / gridCellSize;
     }
 
+    /** LIST FUNCTIONS */
     public void addBlock(Tetrominoe t) {
         nextBlocks.add(t);
         repaint();
     }
-
     public Tetrominoe removeBlock() {
         return nextBlocks.poll();
     }
 
+    /** DRAW BLOCKS */
     private void drawBlocks(Graphics g) {
         int interval = 50;
         for (int i = 0; i < nextBlocks.size(); i++) {
@@ -70,6 +83,19 @@ public class QueueArea extends JPanel {
 
         if (this.nextBlocks != null) {
             drawBlocks(g);
+        }
+    }
+
+    //Listen for Event in Block Controller
+    @Override
+    public void onEvent(GameEvent event) {
+        if (event instanceof QueueAreaEvent) {
+            QueueAreaEvent queueAreaEvent = (QueueAreaEvent) event;
+            if (queueAreaEvent.getRemoveBlock()) {
+                removeBlock();
+            }
+
+            addBlock(queueAreaEvent.getBlock());
         }
     }
 }

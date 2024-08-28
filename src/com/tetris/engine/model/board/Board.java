@@ -17,6 +17,7 @@ import com.tetris.engine.model.tetrominoes.TetrominoeProperties;
 
 import java.awt.*;
 
+/** Board Class -- Create a Tetris Block */
 public class Board {
 
     //Initialize Variables
@@ -51,7 +52,7 @@ public class Board {
         background[row][column] = color;
     }
 
-    /** Description: Detect collision when moving to new coordinates */
+    /** Description: Detect collision when moving to new coordinates. Return True if Collision. */
     public boolean checkBlockCollision(TetrominoeProperties tp, int newX, int newY) {
 
         //Check to see if rotating a block collides with other blocks
@@ -65,16 +66,19 @@ public class Board {
         for (int r = tp.getPointY(); r < h; r++) {
             for (int c = tp.getPointX(); c < w; c++) {
                 if (coords[r][c] == 1) {
+                    //Block Collision
                     if ((xPos + c >= 0 && xPos + c < this.getGridColumns()) &&
                             yPos + r > 0 && yPos + r < this.getGridRows()) {
                         if (this.getBackgroundColor(r + yPos, c + xPos)!= null) {
                             //System.out.println("Block Collision");
                             return true;
                         }
+                    //Side Wall Collision
                     } else if (xPos + c < 0 || xPos + c >= this.getGridColumns()) {
                         //System.out.println("Side Wall Collision");
                         return true;
                     }
+                    //Vertical Wall Collision
                     else if (yPos + r >= this.getGridRows()) {
                         //System.out.println("Vertical Wall Collision");
                         return true;

@@ -15,8 +15,10 @@ package com.tetris.engine.model.tetrominoes;
 
 import java.util.HashMap;
 
+/** TetrominoeCollection Class -- Stores all STATIC tetrominoe properties */
 public class TetrominoeCollection {
 
+    //Initialize Static Variables
     public final static Tetrominoe.ShapeType ISHAPE = Tetrominoe.ShapeType.IShape;
     public final static Tetrominoe.ShapeType JSHAPE = Tetrominoe.ShapeType.JShape;
     public final static Tetrominoe.ShapeType LSHAPE = Tetrominoe.ShapeType.LShape;
@@ -85,13 +87,18 @@ public class TetrominoeCollection {
                     {{1, 0}, {-2, 0}, {1, 2}, {-2, -1}}
             }};
 
+    //Hashmap that stores all tetrominoe properties (rotation) for each block type
     public static final HashMap<String, HashMap<Integer, TetrominoeProperties>>
                           TETROMINOES_PROPERTIES  = initTetrisBlockProperties();
 
+    /** CONSTRUCTOR - CANNOT BE INISTANTIATED */
     private TetrominoeCollection() {
         throw new RuntimeException(("You cannot instantiate me!"));
     }
 
+    /** Description: Creates and returns a hashmap which contains all rotation properties
+     *               for every single block.
+     */
     private static HashMap<String, HashMap<Integer, TetrominoeProperties>>
                     initTetrisBlockProperties() {
         final HashMap<String, HashMap<Integer, TetrominoeProperties>>
@@ -108,14 +115,21 @@ public class TetrominoeCollection {
         return tetrominoesProperties;
     }
 
+    /** Description: Grabs Rotation properties (coords, maxWidth, maxHeight, leftMostX, topMostY) for each rotation
+     *               which are four in total. Returns a hash map.
+     */
     private static HashMap<Integer, TetrominoeProperties> initRotationProperties(int[][] coords) {
+        // Integer - The rotation number starting from 0 and going clockwise (0-1-2-3)
+        // TetrominoeProperties - Wrapper function that contains matrix information of the rotation.
         final HashMap<Integer, TetrominoeProperties> rotationProperties = new HashMap<>();
 
         int matrixSize = coords.length;
 
+        // Clone coords into temp coords to manipulate
         int[][] tempCoords = new int[matrixSize][matrixSize];
         clone2DSquareArray(matrixSize, coords,tempCoords);
 
+        // Put properties into hash map of each rotation
         rotationProperties.put(0, new TetrominoeProperties(tempCoords, getMaxWidth(tempCoords), getMaxHeight(tempCoords),
                                                             getLeftMostX(tempCoords), getTopMostY(tempCoords)));
         rotationProperties.put(3, rotateMatrix(tempCoords));
@@ -125,6 +139,9 @@ public class TetrominoeCollection {
         return rotationProperties;
     }
 
+    /** Description: Rotates matrix, grabs the matrix properties and returns it using the
+     *               wrapper class TetrominoeProperties.
+     */
     private static TetrominoeProperties rotateMatrix(int[][] coords) {
         int matrixSize = coords.length;
 
@@ -153,6 +170,8 @@ public class TetrominoeCollection {
         return new TetrominoeProperties(coords, getMaxWidth(coords), getMaxHeight(coords),
                                         getLeftMostX(coords), getTopMostY(coords));
     }
+
+    /** HELPER FUNCTIONS */
     private static int getMaxWidth(int[][] matrix) {
         int maxWidth = 0;
 
@@ -214,7 +233,6 @@ public class TetrominoeCollection {
 
         return -1;
     }
-
     public static void clone2DSquareArray(int length, int[][] src, int[][] dest) {
         for (int i = 0; i < length; i++) {
             System.arraycopy(src[i], 0, dest[i], 0, length);

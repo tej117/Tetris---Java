@@ -17,9 +17,7 @@ import com.tetris.engine.gui.*;
 import com.tetris.engine.logic.BlockController;
 import com.tetris.engine.logic.MarathonController;
 
-/**
- * GameThread Class -- New Thread for the game loop
- */
+/** GameThread Class -- New Thread for the game loop */
 public class GameThread extends Thread {
 
     //Initialize Variables
